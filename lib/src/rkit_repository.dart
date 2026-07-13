@@ -3,10 +3,11 @@ import 'package:repository_kit/src/rkit_exception.dart';
 import 'package:repository_kit/src/rkit_state.dart';
 import 'package:repository_kit/src/rkit_retry_policy.dart';
 
-/// Abstract base class for implementing offline-first repositories.
+/// Mixin class for implementing offline-first repositories.
 ///
-/// Extend [RKitRepository] and implement [load], [fetch], and [persist] to
-/// describe *what* should happen. The [watch] engine handles *how* it happens.
+/// Use [RKitRepository] by extending it directly or mixing it into an existing
+/// base class. Implement [load], [fetch], and [persist] to describe *what*
+/// should happen. The [watch] engine handles *how* it happens.
 ///
 /// ## Type Parameters
 ///
@@ -15,7 +16,7 @@ import 'package:repository_kit/src/rkit_retry_policy.dart';
 ///   or a DTO). This type is only visible inside [persist]; it never leaves
 ///   the repository.
 ///
-/// ## Example
+/// ## Example (extends)
 ///
 /// ```dart
 /// class UserRepository extends RKitRepository<User, UserDto> {
@@ -39,8 +40,16 @@ import 'package:repository_kit/src/rkit_retry_policy.dart';
 ///   }
 ///
 ///   @override
-///   RKitCachePolicy get cachePolicy =>
-///       RKitCachePolicy.ifEmpty;
+///   RKitCachePolicy get cachePolicy => RKitCachePolicy.ifEmpty;
+/// }
+/// ```
+///
+/// ## Example (mixin — when you already have a base class)
+///
+/// ```dart
+/// class UserRepository extends BaseRepository
+///     with RKitRepository<User, UserDto> {
+///   // same implementation as above
 /// }
 /// ```
 ///
@@ -56,7 +65,7 @@ import 'package:repository_kit/src/rkit_retry_policy.dart';
 ///   }
 /// });
 /// ```
-abstract class RKitRepository<ResultType, RemoteType> {
+abstract mixin class RKitRepository<ResultType, RemoteType> {
   /// Loads the most recent data from local storage.
   ///
   /// Return `null` if no local data is available.

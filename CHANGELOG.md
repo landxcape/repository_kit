@@ -1,3 +1,7 @@
+## 0.1.1
+
+- `RKitRepository` is now declared as `abstract mixin class`. It can be used with `extends` (unchanged from 0.1.0) or with `with` when the consuming class already has a base class. No breaking changes.
+
 ## 0.1.0
 
 Initial release.

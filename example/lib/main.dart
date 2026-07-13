@@ -60,6 +60,8 @@ class UserApi {
 // -----------------------------------------------------------------------------
 // 2. Repository Definition
 // -----------------------------------------------------------------------------
+
+// Standard usage: extends RKitRepository directly.
 class UserRepository extends RKitRepository<User, Map<String, dynamic>> {
   UserRepository({
     required UserDao db,
@@ -100,6 +102,34 @@ class UserRepository extends RKitRepository<User, Map<String, dynamic>> {
     await _db.saveUser(user);
     return user;
   }
+}
+
+// Mixin usage: when you already have a base class you cannot abandon,
+// mix RKitRepository in instead of extending it.
+abstract class BaseRepository {
+  String get tag => runtimeType.toString();
+}
+
+class PostRepository extends BaseRepository
+    with RKitRepository<User, Map<String, dynamic>> {
+  PostRepository(this._api);
+  final UserApi _api;
+
+  @override
+  Future<User?> load() async => null; // no local cache for posts
+
+  @override
+  Future<Map<String, dynamic>> fetch() => _api.getUser('post-42');
+
+  @override
+  Future<User> persist(Map<String, dynamic> response) async => User(
+        id: response['id'] as String,
+        name: response['name'] as String,
+        email: response['email'] as String,
+      );
+
+  @override
+  RKitCachePolicy get cachePolicy => RKitCachePolicy.never;
 }
 
 // -----------------------------------------------------------------------------
