@@ -51,8 +51,8 @@ class UserApi {
 
     return {
       'id': id,
-      'name': 'Purna Shakya',
-      'email': 'purna@example.com',
+      'name': 'Jane Doe',
+      'email': 'jane@example.com',
     };
   }
 }
@@ -143,7 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   RKitCachePolicy _cachePolicy = RKitCachePolicy.always;
   final RKitCachePolicy _staleIfPolicy = RKitCachePolicy.staleIf<User>((user) {
     // If the name is already correct, say it is NOT stale (skip API fetch)
-    return user.name != 'Purna Shakya';
+    return user.name != 'Jane Doe';
   });
   bool _useRetryPolicy = true;
   bool _simulateNetworkError = false;
@@ -255,7 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         DropdownMenuItem(
                           value: _staleIfPolicy,
-                          child: const Text('staleIf (Fetch only if name NOT Purna)'),
+                          child: const Text('staleIf (Fetch only if name NOT Jane)'),
                         ),
                       ],
                       onChanged: (val) {
