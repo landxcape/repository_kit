@@ -64,7 +64,7 @@ This package is not useful when:
 
 ```yaml
 dependencies:
-  repository_kit: ^0.1.2
+  repository_kit: ^0.1.3
 ```
 
 ---
@@ -102,7 +102,37 @@ class UserRepository extends RKitRepository<User, Map<String, dynamic>> {
 }
 ```
 
-### 2. Consume the Stream
+### Alternative: Mix into an existing base class
+
+If your repository already extends another class, use `with` instead of `extends`. `RKitRepository` is declared as `abstract mixin class`, so both patterns compile:
+
+```dart
+// When you already have a base class you cannot drop
+abstract class BaseRepository {
+  String get tag => runtimeType.toString();
+}
+
+class UserRepository extends BaseRepository
+    with RKitRepository<User, Map<String, dynamic>> {
+
+  @override
+  Future<User?> load() => _db.findUser(_userId);
+
+  @override
+  Future<Map<String, dynamic>> fetch() => _api.getUser(_userId);
+
+  @override
+  Future<User> persist(Map<String, dynamic> response) async {
+    final user = User.fromJson(response);
+    await _db.saveUser(user);
+    return user;
+  }
+}
+```
+
+---
+
+### Consume the Stream
 
 The state sealed class is exhaustive, so a `switch` expression covers all cases at compile time.
 
@@ -177,7 +207,7 @@ RKitCachePolicy get cachePolicy => RKitCachePolicy.ifEmpty;
 | Scenario | Emission sequence |
 |---|---|
 | Cache is empty (`load()` returns `null`) | `RKitLoading` → `RKitSuccess` |
-| Cache has data (`load()` returns non-null) | `RKitLoading` → `RKitSuccess` (cached, no network call) |
+| Cache has data (`load()` returns non-null) | `RKitLoading` → `RKitCache` (cached, no network call) |
 | Cache empty and `fetch()` fails | `RKitLoading` → `RKitFailure` |
 
 ---
@@ -193,7 +223,7 @@ RKitCachePolicy get cachePolicy => RKitCachePolicy.never;
 
 | Scenario | Emission sequence |
 |---|---|
-| Cache has data | `RKitLoading` → `RKitSuccess` (cached) |
+| Cache has data | `RKitLoading` → `RKitCache` (cached) |
 | Cache is empty | `RKitLoading` → `RKitFailure` |
 
 ---
@@ -214,7 +244,7 @@ RKitCachePolicy get cachePolicy => RKitCachePolicy.staleIf<User>((cachedUser) {
 |---|---|
 | Cache is empty | `RKitLoading` → `RKitSuccess` (fresh) |
 | Cache is stale (closure returns `true`) | `RKitLoading` → `RKitCache` → `RKitSuccess` |
-| Cache is fresh (closure returns `false`) | `RKitLoading` → `RKitSuccess` (cached, no network call) |
+| Cache is fresh (closure returns `false`) | `RKitLoading` → `RKitCache` (cached, no network call) |
 | Cache stale and `fetch()` fails | `RKitLoading` → `RKitCache` → `RKitFailure` |
 
 
@@ -279,14 +309,14 @@ RKitRetryPolicy get retryPolicy => RKitRetryPolicy.exponential(
 | `Future<ResultType> persist(RemoteType)` | Save the remote response and return the domain model. |
 | `RKitCachePolicy get cachePolicy` | When to fetch from remote. Defaults to `RKitCachePolicy.always`. |
 | `RKitRetryPolicy get retryPolicy` | How to handle request failures. Defaults to `RKitRetryPolicy.none`. |
-| `Stream<RKitState<ResultType>> watch()` | The two-shot stream. |
+| `Stream<RKitState<ResultType>> watch()` | The parallel or sequential stream engine, depending on `cachePolicy`. |
 
 ### `RKitState<T>`
 
 | Subtype | When emitted |
 |---|---|
 | `RKitLoading` | Always, immediately. |
-| `RKitCache(data)` | When `load()` returns non-null before `fetch()` completes (`always` policy only). |
+| `RKitCache(data)` | When `load()` returns non-null before the terminal state is emitted. Occurs under `always` (if local wins the race) and `staleIf` (if cached data is stale). |
 | `RKitSuccess(data)` | When the network fetch and persist succeed. |
 | `RKitFailure(error, {data?})` | When the network fetch or persist fails. Holds an `RKitException`. |
 

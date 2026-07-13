@@ -105,10 +105,12 @@ abstract mixin class RKitRepository<ResultType, RemoteType> {
   /// ## Emission order
   ///
   /// 1. [RKitLoading] — emitted immediately, before any async work.
-  /// 2. [RKitCache] — emitted if [load] returns a non-null value before
-  ///    [fetch] completes (only when [cachePolicy] is
-  ///    [RKitCachePolicy.always]).
-  /// 3. [RKitSuccess] or [RKitFailure] — the terminal state.
+  /// 2. [RKitCache] — emitted if [load] returns a non-null value. This state can
+  ///    be intermediate (before [RKitSuccess] / [RKitFailure]) or terminal (if the
+  ///    cache policy determines that no remote fetch is required).
+  /// 3. [RKitSuccess] or [RKitFailure] — the terminal state if a remote fetch
+  ///    was performed. [RKitSuccess] is strictly emitted only when the remote
+  ///    fetch completes successfully and its response is persisted.
   ///
   /// ## Parallel execution ([RKitCachePolicy.always])
   ///
@@ -123,7 +125,8 @@ abstract mixin class RKitRepository<ResultType, RemoteType> {
   ///
   /// All other policies ([RKitCachePolicy.ifEmpty], [RKitCachePolicy.never],
   /// [RKitCachePolicy.staleIf]) execute [load] first, then conditionally
-  /// execute [fetch] based on the cached result.
+  /// execute [fetch] based on the cached result. If no fetch is executed,
+  /// the stream terminates at [RKitCache] (or [RKitFailure] if the cache is null).
   ///
   /// The stream closes after the terminal emission.
   Stream<RKitState<ResultType>> watch() {
@@ -215,14 +218,16 @@ abstract mixin class RKitRepository<ResultType, RemoteType> {
       // Treat a load failure as a cache miss. Remote fetch will proceed.
     }
 
-    if (cached != null) {
-      yield RKitCache(cached);
-    }
+    // Always deliver cached data if present. The data layer's contract is to
+    // emit data as it becomes available — what the presentation layer does with
+    // it is not this layer's concern.
+    if (cached != null) yield RKitCache(cached);
 
     if (!cachePolicy.shouldFetch(cached)) {
-      if (cached != null) {
-        yield RKitSuccess(cached);
-      } else {
+      // Policy decided no fetch is needed. If cache was available it was
+      // already emitted above and the stream ends there.
+      // The only failure case is never policy with no local data at all.
+      if (cached == null) {
         yield RKitFailure(
           const RKitException(
             'RKitCachePolicy.never is active but no local data is available.',
@@ -232,6 +237,8 @@ abstract mixin class RKitRepository<ResultType, RemoteType> {
       return;
     }
 
+    // Fetch is proceeding. RKitSuccess is strictly emitted when the API
+    // returns and data has been persisted.
     try {
       final response = await retryPolicy.execute(fetch);
       final result = await persist(response);
