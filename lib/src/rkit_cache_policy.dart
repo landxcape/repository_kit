@@ -23,6 +23,14 @@ sealed class RKitCachePolicy {
   /// [RKitFailure] with an [RKitException] and closes.
   static const RKitCachePolicy never = _NeverPolicy();
 
+  /// Fetch from the remote source only if the [cached] data is stale.
+  ///
+  /// Pass a closure [isStale] that takes the cached object and returns `true`
+  /// if a remote fetch is required, or `false` to skip the remote fetch and
+  /// serve the cached data as the terminal [RKitSuccess] state.
+  static RKitCachePolicy staleIf<T>(bool Function(T cached) isStale) =>
+      _StaleIfPolicy<T>(isStale);
+
   /// Whether a remote fetch should be performed given the current [cached] data.
   bool shouldFetch<T>(T? cached);
 }
@@ -46,4 +54,19 @@ final class _NeverPolicy extends RKitCachePolicy {
 
   @override
   bool shouldFetch<T>(T? cached) => false;
+}
+
+final class _StaleIfPolicy<T> extends RKitCachePolicy {
+  const _StaleIfPolicy(this.isStale);
+
+  final bool Function(T cached) isStale;
+
+  @override
+  bool shouldFetch<S>(S? cached) {
+    if (cached == null) return true;
+    if (cached is T) {
+      return isStale(cached as T);
+    }
+    return true;
+  }
 }

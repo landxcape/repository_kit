@@ -118,6 +118,28 @@ void main() {
       );
     });
 
+    test('RKitCachePolicy.staleIf fetches when isStale returns true', () async {
+      final repo = _TestRepository(
+        localData: 'cached',
+        remoteData: 'fresh',
+        cachePolicy: RKitCachePolicy.staleIf<String>((data) => data == 'cached'),
+      );
+      final states = await repo.watch().toList();
+      expect(states.last, isA<RKitSuccess<String>>());
+      expect((states.last as RKitSuccess<String>).data, 'fresh');
+    });
+
+    test('RKitCachePolicy.staleIf skips fetch when isStale returns false', () async {
+      final repo = _TestRepository(
+        localData: 'cached',
+        remoteData: 'fresh',
+        cachePolicy: RKitCachePolicy.staleIf<String>((data) => data != 'cached'),
+      );
+      final states = await repo.watch().toList();
+      expect(states.last, isA<RKitSuccess<String>>());
+      expect((states.last as RKitSuccess<String>).data, 'cached');
+    });
+
     test('stream closes after terminal emission', () async {
       final repo = _TestRepository(remoteData: 'fresh');
       var count = 0;
