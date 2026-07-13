@@ -199,9 +199,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _getStateLog(RKitState<User> state) {
     return switch (state) {
       RKitLoading() => '[RKitState] Loading: Starting fetch lifecycle',
-      RKitCache(:final data) => '[RKitState] Cache: Serving stale data (User: ${data.name})',
-      RKitSuccess(:final data) => '[RKitState] Success: Fresh data saved (User: ${data.name})',
-      RKitFailure(:final error, :final data) => '[RKitState] Failure: error="$error", staleData=${data?.name ?? "null"}',
+      RKitCache(:final data) =>
+        '[RKitState] Cache: Serving stale data (User: ${data.name})',
+      RKitSuccess(:final data) =>
+        '[RKitState] Success: Fresh data saved (User: ${data.name})',
+      RKitFailure(:final error, :final data) =>
+        '[RKitState] Failure: error="$error", staleData=${data?.name ?? "null"}',
     };
   }
 
@@ -255,7 +258,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         DropdownMenuItem(
                           value: _staleIfPolicy,
-                          child: const Text('staleIf (Fetch only if name NOT Jane)'),
+                          child: const Text(
+                              'staleIf (Fetch only if name NOT Jane)'),
                         ),
                       ],
                       onChanged: (val) {
@@ -268,15 +272,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Checkboxes
                     SwitchListTile(
                       title: const Text('Exponential Retry (3 Attempts)'),
-                      subtitle: const Text('Recover from simulated network issues'),
+                      subtitle:
+                          const Text('Recover from simulated network issues'),
                       value: _useRetryPolicy,
                       onChanged: (val) => setState(() => _useRetryPolicy = val),
                     ),
                     SwitchListTile(
                       title: const Text('Simulate Network Timeout'),
-                      subtitle: const Text('First 2 attempts fail. Succeeds on 3rd.'),
+                      subtitle:
+                          const Text('First 2 attempts fail. Succeeds on 3rd.'),
                       value: _simulateNetworkError,
-                      onChanged: (val) => setState(() => _simulateNetworkError = val),
+                      onChanged: (val) =>
+                          setState(() => _simulateNetworkError = val),
                     ),
                     const SizedBox(height: 12),
                     // Action Buttons
@@ -355,7 +362,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: _consoleLogs.isEmpty
                     ? const Text(
                         'No emissions yet...',
-                        style: TextStyle(color: Colors.grey, fontFamily: 'monospace'),
+                        style: TextStyle(
+                            color: Colors.grey, fontFamily: 'monospace'),
                       )
                     : ListView.builder(
                         itemCount: _consoleLogs.length,
@@ -365,7 +373,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Text(
                               _consoleLogs[index],
                               style: const TextStyle(
-                                color: Color(0xFF34D399), // Emerald terminal green
+                                color:
+                                    Color(0xFF34D399), // Emerald terminal green
                                 fontFamily: 'monospace',
                                 fontSize: 13,
                               ),
@@ -413,7 +422,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 12),
                 Text(
                   'Operation Failed',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.red),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(color: Colors.red),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -455,7 +467,8 @@ class _UserCardView extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1.5),
+        border:
+            Border.all(color: borderColor.withValues(alpha: 0.5), width: 1.5),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(

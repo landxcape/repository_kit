@@ -66,8 +66,7 @@ void main() {
       expect((states.last as RKitSuccess<String>).data, 'fresh');
     });
 
-    test('emits RKitFailure with stale data when fetch throws',
-        () async {
+    test('emits RKitFailure with stale data when fetch throws', () async {
       final repo = _TestRepository(
         localData: 'cached',
         fetchThrows: true,
@@ -122,18 +121,21 @@ void main() {
       final repo = _TestRepository(
         localData: 'cached',
         remoteData: 'fresh',
-        cachePolicy: RKitCachePolicy.staleIf<String>((data) => data == 'cached'),
+        cachePolicy:
+            RKitCachePolicy.staleIf<String>((data) => data == 'cached'),
       );
       final states = await repo.watch().toList();
       expect(states.last, isA<RKitSuccess<String>>());
       expect((states.last as RKitSuccess<String>).data, 'fresh');
     });
 
-    test('RKitCachePolicy.staleIf skips fetch when isStale returns false', () async {
+    test('RKitCachePolicy.staleIf skips fetch when isStale returns false',
+        () async {
       final repo = _TestRepository(
         localData: 'cached',
         remoteData: 'fresh',
-        cachePolicy: RKitCachePolicy.staleIf<String>((data) => data != 'cached'),
+        cachePolicy:
+            RKitCachePolicy.staleIf<String>((data) => data != 'cached'),
       );
       final states = await repo.watch().toList();
       expect(states.last, isA<RKitSuccess<String>>());

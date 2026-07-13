@@ -1,7 +1,7 @@
 /// Base class for exceptions thrown by the [RKitRepository] framework itself.
 ///
 /// Errors thrown by user-implemented methods ([RKitRepository.load],
-/// [RKitRepository.request], [RKitRepository.persist]) are surfaced directly
+/// [RKitRepository.fetch], [RKitRepository.persist]) are surfaced directly
 /// via [RKitFailure.error] and are not wrapped in this type.
 ///
 /// [RKitException] is reserved for infrastructure-level failures
