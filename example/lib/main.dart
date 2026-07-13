@@ -198,10 +198,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getStateLog(RKitState<User> state) {
     return switch (state) {
-      RKitLoading() => '⏳ RKitLoading emitted: Start fetch lifecycle',
-      RKitCache(:final data) => '💾 RKitCache emitted: Serve stale data (User: ${data.name})',
-      RKitSuccess(:final data) => '✅ RKitSuccess emitted: Fresh data saved (User: ${data.name})',
-      RKitFailure(:final error, :final data) => '❌ RKitFailure emitted: error="$error", staleData=${data?.name ?? "null"}',
+      RKitLoading() => '[RKitState] Loading: Starting fetch lifecycle',
+      RKitCache(:final data) => '[RKitState] Cache: Serving stale data (User: ${data.name})',
+      RKitSuccess(:final data) => '[RKitState] Success: Fresh data saved (User: ${data.name})',
+      RKitFailure(:final error, :final data) => '[RKitState] Failure: error="$error", staleData=${data?.name ?? "null"}',
     };
   }
 
