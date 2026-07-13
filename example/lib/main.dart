@@ -139,7 +139,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final UserDao _db = UserDao();
   final UserApi _api = UserApi();
-  
+
   RKitCachePolicy _cachePolicy = RKitCachePolicy.always;
   bool _useRetryPolicy = true;
   bool _simulateNetworkError = false;
@@ -151,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _consoleLogs.clear();
       _api.setShouldFail(_simulateNetworkError);
-      
+
       final retryPolicy = _useRetryPolicy
           ? RKitRetryPolicy.exponential(
               maxAttempts: 3,
@@ -197,8 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       RKitLoading() => '⏳ RKitLoading emitted: Start fetch lifecycle',
       RKitCache(:final data) => '💾 RKitCache emitted: Serve stale data (User: ${data.name})',
       RKitSuccess(:final data) => '✅ RKitSuccess emitted: Fresh data saved (User: ${data.name})',
-      RKitFailure(:final error, :final data) => 
-        '❌ RKitFailure emitted: error="$error", staleData=${data?.name ?? "null"}',
+      RKitFailure(:final error, :final data) => '❌ RKitFailure emitted: error="$error", staleData=${data?.name ?? "null"}',
     };
   }
 
@@ -232,7 +231,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 12),
                     // Cache Policy Selector
                     DropdownButtonFormField<RKitCachePolicy>(
-                      value: _cachePolicy,
+                      initialValue: _cachePolicy,
                       decoration: const InputDecoration(
                         labelText: 'Cache Policy',
                         border: OutlineInputBorder(),
