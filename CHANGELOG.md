@@ -1,3 +1,7 @@
+## 0.1.2
+
+- `RKitCachePolicy.always` now runs `load()` and `fetch()` in parallel. The first to complete determines the emission sequence: if `fetch()` wins, `RKitSuccess` is emitted directly and `RKitCache` is never shown; if `load()` wins, `RKitCache` is emitted first, followed by `RKitSuccess` when `fetch()` completes. Total time to `RKitSuccess` is now `max(load, fetch)` instead of `load + fetch`. All other policies are sequential and unchanged.
+
 ## 0.1.1
 
 - `RKitRepository` is now declared as `abstract mixin class`. It can be used with `extends` (unchanged from 0.1.0) or with `with` when the consuming class already has a base class. No breaking changes.

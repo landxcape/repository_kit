@@ -64,7 +64,7 @@ This package is not useful when:
 
 ```yaml
 dependencies:
-  repository_kit: ^0.1.0
+  repository_kit: ^0.1.2
 ```
 
 ---
@@ -144,47 +144,116 @@ StreamBuilder<RKitState<User>>(
 
 ## Cache Policy
 
-Control whether the network request is made at all.
+Control whether and when the network request is made. Set via `cachePolicy` on your repository.
+
+### `RKitCachePolicy.always` (default) — Parallel
+
+`load()` and `fetch()` run simultaneously. The first to complete controls what the stream emits.
 
 ```dart
-// Always fetch from the network (default)
 @override
 RKitCachePolicy get cachePolicy => RKitCachePolicy.always;
+```
 
-// Only fetch if no local data exists
+| Scenario | Emission sequence |
+|---|---|
+| `fetch()` wins the race | `RKitLoading` → `RKitSuccess` |
+| `load()` wins the race | `RKitLoading` → `RKitCache` → `RKitSuccess` |
+| `fetch()` fails | `RKitLoading` → `RKitCache` (if available) → `RKitFailure` |
+
+Total time to `RKitSuccess` is `max(load, fetch)` instead of `load + fetch`.
+
+---
+
+### `RKitCachePolicy.ifEmpty` — Sequential
+
+`load()` runs first. `fetch()` is only called if `load()` returns `null`. Saves network bandwidth when data is already cached.
+
+```dart
 @override
 RKitCachePolicy get cachePolicy => RKitCachePolicy.ifEmpty;
+```
 
-// Never fetch — serve local data only
+| Scenario | Emission sequence |
+|---|---|
+| Cache is empty (`load()` returns `null`) | `RKitLoading` → `RKitSuccess` |
+| Cache has data (`load()` returns non-null) | `RKitLoading` → `RKitSuccess` (cached, no network call) |
+| Cache empty and `fetch()` fails | `RKitLoading` → `RKitFailure` |
+
+---
+
+### `RKitCachePolicy.never` — Local only
+
+`load()` runs. `fetch()` is never called. Useful for fully offline features or reference data that does not change.
+
+```dart
 @override
 RKitCachePolicy get cachePolicy => RKitCachePolicy.never;
+```
 
-// Fetch dynamically if the cached object is stale
+| Scenario | Emission sequence |
+|---|---|
+| Cache has data | `RKitLoading` → `RKitSuccess` (cached) |
+| Cache is empty | `RKitLoading` → `RKitFailure` |
+
+---
+
+### `RKitCachePolicy.staleIf` — Sequential, conditional
+
+`load()` runs first. Your closure inspects the cached object and decides whether it is stale. If stale, `fetch()` proceeds. If fresh, `fetch()` is skipped.
+
+```dart
 @override
 RKitCachePolicy get cachePolicy => RKitCachePolicy.staleIf<User>((cachedUser) {
   final age = DateTime.now().difference(cachedUser.updatedAt);
-  return age > const Duration(minutes: 5);
+  return age > const Duration(minutes: 5); // true = stale, fetch needed
 });
 ```
+
+| Scenario | Emission sequence |
+|---|---|
+| Cache is empty | `RKitLoading` → `RKitSuccess` (fresh) |
+| Cache is stale (closure returns `true`) | `RKitLoading` → `RKitCache` → `RKitSuccess` |
+| Cache is fresh (closure returns `false`) | `RKitLoading` → `RKitSuccess` (cached, no network call) |
+| Cache stale and `fetch()` fails | `RKitLoading` → `RKitCache` → `RKitFailure` |
+
+
 
 ---
 
 ## Retry Policy
 
-Control retry behaviour when the network request fails.
+Control retry behaviour when `fetch()` fails.
+
+### `RKitRetryPolicy.none` (default)
+
+No retries. A single failure immediately emits `RKitFailure`.
 
 ```dart
-// No retries (default)
 @override
 RKitRetryPolicy get retryPolicy => RKitRetryPolicy.none;
+```
 
-// Retry up to 3 times with exponential backoff starting at 1 second
+### `RKitRetryPolicy.exponential`
+
+Retries `fetch()` up to `maxAttempts` times with exponentially increasing delays between attempts. If all attempts fail, `RKitFailure` is emitted.
+
+```dart
 @override
 RKitRetryPolicy get retryPolicy => RKitRetryPolicy.exponential(
   maxAttempts: 3,
   initialDelay: const Duration(seconds: 1),
+  // Delays: 1s, 2s, 4s — then failure
 );
 ```
+
+| Attempt | Delay before attempt |
+|---|---|
+| 1 | `initialDelay` |
+| 2 | `initialDelay * 2` |
+| 3 | `initialDelay * 4` |
+| … | … |
+
 
 ---
 
@@ -217,7 +286,7 @@ RKitRetryPolicy get retryPolicy => RKitRetryPolicy.exponential(
 | Subtype | When emitted |
 |---|---|
 | `RKitLoading` | Always, immediately. |
-| `RKitCache(data)` | When `load()` returns non-null. |
+| `RKitCache(data)` | When `load()` returns non-null before `fetch()` completes (`always` policy only). |
 | `RKitSuccess(data)` | When the network fetch and persist succeed. |
 | `RKitFailure(error, {data?})` | When the network fetch or persist fails. Holds an `RKitException`. |
 

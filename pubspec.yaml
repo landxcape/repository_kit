@@ -1,6 +1,6 @@
 name: repository_kit
 description: A pure Dart toolkit for implementing clean, offline-first repositories by owning cache-vs-remote strategy decisions.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/landxcape/repository_kit
 repository: https://github.com/landxcape/repository_kit
 issue_tracker: https://github.com/landxcape/repository_kit/issues

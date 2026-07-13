@@ -40,6 +40,9 @@ class UserApi {
 
   Future<Map<String, dynamic>> getUser(String id) async {
     _requestCount++;
+    // 800ms — slower than UserDao (400ms), so local wins the parallel race
+    // on the first call. On subsequent calls, local has cached data and wins again.
+    // To see API win, reduce this delay below UserDao.findUser's 400ms delay.
     await Future<void>.delayed(const Duration(milliseconds: 800));
 
     if (_shouldFail) {
@@ -180,11 +183,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Stream<RKitState<User>>? _repositoryStream;
   final List<String> _consoleLogs = [];
+  String _activePolicyName = 'always';
 
   void _runWatch() {
     setState(() {
       _consoleLogs.clear();
       _api.setShouldFail(_simulateNetworkError);
+
+      // Capture human-readable name for log context.
+      if (_cachePolicy == RKitCachePolicy.always) {
+        _activePolicyName = 'always (parallel)';
+      } else if (_cachePolicy == RKitCachePolicy.ifEmpty) {
+        _activePolicyName = 'ifEmpty (sequential)';
+      } else if (_cachePolicy == RKitCachePolicy.never) {
+        _activePolicyName = 'never (local only)';
+      } else {
+        _activePolicyName = 'staleIf (sequential)';
+      }
 
       final retryPolicy = _useRetryPolicy
           ? RKitRetryPolicy.exponential(
@@ -227,14 +242,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   String _getStateLog(RKitState<User> state) {
+    final isParallel = _cachePolicy == RKitCachePolicy.always;
     return switch (state) {
-      RKitLoading() => '[RKitState] Loading: Starting fetch lifecycle',
-      RKitCache(:final data) =>
-        '[RKitState] Cache: Serving stale data (User: ${data.name})',
+      RKitLoading() => isParallel
+          ? '[policy: $_activePolicyName] Loading: load() and fetch() started in parallel'
+          : '[policy: $_activePolicyName] Loading: load() started, fetch() conditional on result',
+      RKitCache(:final data) => isParallel
+          ? '[RKitCache] local won the race (User: ${data.name}) — fetch() still in flight'
+          : '[RKitCache] load() returned stale data (User: ${data.name}) — fetch() starting',
       RKitSuccess(:final data) =>
-        '[RKitState] Success: Fresh data saved (User: ${data.name})',
+        '[RKitSuccess] fresh data persisted (User: ${data.name})',
       RKitFailure(:final error, :final data) =>
-        '[RKitState] Failure: error="$error", staleData=${data?.name ?? "null"}',
+        '[RKitFailure] error="$error", staleData=${data?.name ?? "null"}',
     };
   }
 
