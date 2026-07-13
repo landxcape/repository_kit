@@ -2,7 +2,7 @@
 
 Initial release.
 
-- `RKitRepository<Result, Remote>` — abstract base class with a two-shot `watch()` stream engine.
+- `RKitRepository<ResultType, RemoteType>` — abstract base class with a two-shot `watch()` stream engine.
 - `RKitState<T>` — sealed state hierarchy with four subtypes: `RKitLoading`, `RKitCache`, `RKitSuccess`, `RKitFailure`.
 - `RKitCachePolicy` — controls when the remote fetch is performed. Supports `always`, `ifEmpty`, and `never`.
 - `RKitRetryPolicy` — controls retry behaviour on request failure. Supports `none` and `exponential` backoff.

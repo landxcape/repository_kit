@@ -89,7 +89,7 @@ class UserRepository extends RKitRepository<User, Map<String, dynamic>> {
 
   /// Make the network request.
   @override
-  Future<Map<String, dynamic>> request() => _api.getUser(_userId);
+  Future<Map<String, dynamic>> fetch() => _api.getUser(_userId);
 
   /// Persist the network response and return the domain model.
   /// Both saving and returning are required.
@@ -186,7 +186,7 @@ RKitRetryPolicy get retryPolicy => RKitRetryPolicy.exponential(
 | Scenario | Behaviour |
 |---|---|
 | `load()` throws | Treated as a cache miss. The network fetch proceeds normally. |
-| `request()` throws | Emits `RKitFailure` with stale data if cache was available. The original exception is wrapped in `RKitException` to preserve error/stacktrace context. |
+| `fetch()` throws | Emits `RKitFailure` with stale data if cache was available. The original exception is wrapped in `RKitException` to preserve error/stacktrace context. |
 | `persist()` throws | Emits `RKitFailure` with stale data if cache was available. |
 | `RKitCachePolicy.never`, no local data | Emits `RKitFailure` with an `RKitException`. |
 
@@ -194,16 +194,16 @@ RKitRetryPolicy get retryPolicy => RKitRetryPolicy.exponential(
 
 ## API Reference
 
-### `RKitRepository<Result, Remote>`
+### `RKitRepository<ResultType, RemoteType>`
 
 | Member | Description |
 |---|---|
-| `Future<Result?> load()` | Load from local storage. Return `null` if nothing is cached. |
-| `Future<Remote> request()` | Make the remote request. |
-| `Future<Result> persist(Remote)` | Save the remote response and return the domain model. |
+| `Future<ResultType?> load()` | Load from local storage. Return `null` if nothing is cached. |
+| `Future<RemoteType> fetch()` | Make the remote request. |
+| `Future<ResultType> persist(RemoteType)` | Save the remote response and return the domain model. |
 | `RKitCachePolicy get cachePolicy` | When to fetch from remote. Defaults to `RKitCachePolicy.always`. |
 | `RKitRetryPolicy get retryPolicy` | How to handle request failures. Defaults to `RKitRetryPolicy.none`. |
-| `Stream<RKitState<Result>> watch()` | The two-shot stream. |
+| `Stream<RKitState<ResultType>> watch()` | The two-shot stream. |
 
 ### `RKitState<T>`
 

@@ -5,13 +5,13 @@ import 'package:repository_kit/src/rkit_retry_policy.dart';
 
 /// Abstract base class for implementing offline-first repositories.
 ///
-/// Extend [RKitRepository] and implement [load], [request], and [persist] to
+/// Extend [RKitRepository] and implement [load], [fetch], and [persist] to
 /// describe *what* should happen. The [watch] engine handles *how* it happens.
 ///
 /// ## Type Parameters
 ///
-/// - [Result] — the domain model type exposed to callers.
-/// - [Remote] — the raw type returned by the remote source (e.g. a JSON map
+/// - [ResultType] — the domain model type exposed to callers.
+/// - [RemoteType] — the raw type returned by the remote source (e.g. a JSON map
 ///   or a DTO). This type is only visible inside [persist]; it never leaves
 ///   the repository.
 ///
@@ -29,7 +29,7 @@ import 'package:repository_kit/src/rkit_retry_policy.dart';
 ///   Future<User?> load() => _db.findUser(userId);
 ///
 ///   @override
-///   Future<UserDto> request() => _api.getUser(userId);
+///   Future<UserDto> fetch() => _api.getUser(userId);
 ///
 ///   @override
 ///   Future<User> persist(UserDto response) async {
@@ -56,36 +56,36 @@ import 'package:repository_kit/src/rkit_retry_policy.dart';
 ///   }
 /// });
 /// ```
-abstract class RKitRepository<Result, Remote> {
+abstract class RKitRepository<ResultType, RemoteType> {
   /// Loads the most recent data from local storage.
   ///
   /// Return `null` if no local data is available.
   /// If this method throws, the error is silently swallowed and treated as
   /// a cache miss — the remote fetch proceeds normally.
-  Future<Result?> load();
+  Future<ResultType?> load();
 
   /// Performs the remote data request.
   ///
   /// Throw any exception to trigger [RKitFailure]. The [retryPolicy]
   /// controls how many times this is attempted before failing.
-  Future<Remote> request();
+  Future<RemoteType> fetch();
 
   /// Persists the remote [response] to local storage and returns the
   /// domain representation.
   ///
-  /// Both saving and returning are required. The returned [Result] is what
+  /// Both saving and returning are required. The returned [ResultType] is what
   /// the stream emits as [RKitSuccess.data].
   ///
   /// If this method throws, [RKitFailure] is emitted with the stale
   /// cached data if available.
-  Future<Result> persist(Remote response);
+  Future<ResultType> persist(RemoteType response);
 
   /// Controls when a remote fetch is performed.
   ///
   /// Defaults to [RKitCachePolicy.always].
   RKitCachePolicy get cachePolicy => RKitCachePolicy.always;
 
-  /// Controls retry behaviour when [request] fails.
+  /// Controls retry behaviour when [fetch] fails.
   ///
   /// Defaults to [RKitRetryPolicy.none].
   RKitRetryPolicy get retryPolicy => RKitRetryPolicy.none;
@@ -100,10 +100,10 @@ abstract class RKitRepository<Result, Remote> {
   /// 3. [RKitSuccess] or [RKitFailure] — the terminal state.
   ///
   /// The stream closes after the terminal emission.
-  Stream<RKitState<Result>> watch() async* {
+  Stream<RKitState<ResultType>> watch() async* {
     yield const RKitLoading();
 
-    Result? cached;
+    ResultType? cached;
     try {
       cached = await load();
     } catch (_) {
@@ -128,7 +128,7 @@ abstract class RKitRepository<Result, Remote> {
     }
 
     try {
-      final response = await retryPolicy.execute(request);
+      final response = await retryPolicy.execute(fetch);
       final result = await persist(response);
       yield RKitSuccess(result);
     } catch (error, stackTrace) {

@@ -7,7 +7,7 @@ class _TestRepository extends RKitRepository<String, String> {
     this.localData,
     this.remoteData,
     this.loadThrows = false,
-    this.requestThrows = false,
+    this.fetchThrows = false,
     RKitCachePolicy? cachePolicy,
     RKitRetryPolicy? retryPolicy,
   })  : _cachePolicy = cachePolicy ?? RKitCachePolicy.always,
@@ -16,7 +16,7 @@ class _TestRepository extends RKitRepository<String, String> {
   final String? localData;
   final String? remoteData;
   final bool loadThrows;
-  final bool requestThrows;
+  final bool fetchThrows;
   final RKitCachePolicy _cachePolicy;
   final RKitRetryPolicy _retryPolicy;
 
@@ -33,8 +33,8 @@ class _TestRepository extends RKitRepository<String, String> {
   }
 
   @override
-  Future<String> request() async {
-    if (requestThrows) throw Exception('request failed');
+  Future<String> fetch() async {
+    if (fetchThrows) throw Exception('fetch failed');
     return remoteData!;
   }
 
@@ -66,11 +66,11 @@ void main() {
       expect((states.last as RKitSuccess<String>).data, 'fresh');
     });
 
-    test('emits RKitFailure with stale data when request throws',
+    test('emits RKitFailure with stale data when fetch throws',
         () async {
       final repo = _TestRepository(
         localData: 'cached',
-        requestThrows: true,
+        fetchThrows: true,
       );
       final states = await repo.watch().toList();
       final failure = states.last as RKitFailure<String>;
@@ -80,9 +80,9 @@ void main() {
       expect((failure.error as RKitException).error, isA<Exception>());
     });
 
-    test('emits RKitFailure with no data when request throws and no cache',
+    test('emits RKitFailure with no data when fetch throws and no cache',
         () async {
-      final repo = _TestRepository(requestThrows: true);
+      final repo = _TestRepository(fetchThrows: true);
       final states = await repo.watch().toList();
       final failure = states.last as RKitFailure<String>;
       expect(failure.data, isNull);

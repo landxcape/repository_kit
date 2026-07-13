@@ -88,7 +88,7 @@ class UserRepository extends RKitRepository<User, Map<String, dynamic>> {
   Future<User?> load() => _db.findUser(userId);
 
   @override
-  Future<Map<String, dynamic>> request() => _api.getUser(userId);
+  Future<Map<String, dynamic>> fetch() => _api.getUser(userId);
 
   @override
   Future<User> persist(Map<String, dynamic> response) async {
@@ -388,14 +388,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           user: data,
           statusText: 'Serving Stale Cache Data...',
           borderColor: Colors.amber,
-          badgeColor: Colors.amber.withOpacity(0.2),
+          badgeColor: Colors.amber.withValues(alpha: 0.2),
           badgeText: 'STALE CACHE',
         ),
       RKitSuccess(:final data) => _UserCardView(
           user: data,
           statusText: 'Data Fetched & Synced Successfully',
           borderColor: Colors.green,
-          badgeColor: Colors.green.withOpacity(0.2),
+          badgeColor: Colors.green.withValues(alpha: 0.2),
           badgeText: 'SYNCHRONIZED',
         ),
       RKitFailure(:final error, :final data) => data == null
@@ -420,7 +420,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               user: data,
               statusText: 'Fetch Failed: Showing Stale Backup Data',
               borderColor: Colors.redAccent,
-              badgeColor: Colors.red.withOpacity(0.2),
+              badgeColor: Colors.red.withValues(alpha: 0.2),
               badgeText: 'ERROR FALLBACK',
             ),
     };
@@ -448,7 +448,7 @@ class _UserCardView extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor.withOpacity(0.5), width: 1.5),
+        border: Border.all(color: borderColor.withValues(alpha: 0.5), width: 1.5),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
