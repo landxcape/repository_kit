@@ -158,6 +158,13 @@ RKitCachePolicy get cachePolicy => RKitCachePolicy.ifEmpty;
 // Never fetch — serve local data only
 @override
 RKitCachePolicy get cachePolicy => RKitCachePolicy.never;
+
+// Fetch dynamically if the cached object is stale
+@override
+RKitCachePolicy get cachePolicy => RKitCachePolicy.staleIf<User>((cachedUser) {
+  final age = DateTime.now().difference(cachedUser.updatedAt);
+  return age > const Duration(minutes: 5);
+});
 ```
 
 ---

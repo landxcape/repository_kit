@@ -141,6 +141,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final UserApi _api = UserApi();
 
   RKitCachePolicy _cachePolicy = RKitCachePolicy.always;
+  final RKitCachePolicy _staleIfPolicy = RKitCachePolicy.staleIf<User>((user) {
+    // If the name is already correct, say it is NOT stale (skip API fetch)
+    return user.name != 'Purna Shakya';
+  });
   bool _useRetryPolicy = true;
   bool _simulateNetworkError = false;
 
@@ -236,18 +240,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         labelText: 'Cache Policy',
                         border: OutlineInputBorder(),
                       ),
-                      items: const [
-                        DropdownMenuItem(
+                      items: [
+                        const DropdownMenuItem(
                           value: RKitCachePolicy.always,
                           child: Text('always (Fetch every time)'),
                         ),
-                        DropdownMenuItem(
+                        const DropdownMenuItem(
                           value: RKitCachePolicy.ifEmpty,
                           child: Text('ifEmpty (Only fetch if cache empty)'),
                         ),
-                        DropdownMenuItem(
+                        const DropdownMenuItem(
                           value: RKitCachePolicy.never,
                           child: Text('never (Serve from cache only)'),
+                        ),
+                        DropdownMenuItem(
+                          value: _staleIfPolicy,
+                          child: const Text('staleIf (Fetch only if name NOT Purna)'),
                         ),
                       ],
                       onChanged: (val) {
