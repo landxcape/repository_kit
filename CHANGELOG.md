@@ -1,3 +1,8 @@
+## 0.1.4
+
+- Added `.pubignore` to prevent bundling build artifacts and temporary files.
+- Upgraded `lints` dev dependency to `^6.0.0`.
+
 ## 0.1.3
 
 - **State Semantics Refinement:**

@@ -102,8 +102,8 @@ void main() {
         cachePolicy: RKitCachePolicy.ifEmpty,
       );
       final states = await repo.watch().toList();
-      expect(states.last, isA<RKitSuccess<String>>());
-      expect((states.last as RKitSuccess<String>).data, 'cached');
+      expect(states.last, isA<RKitCache<String>>());
+      expect((states.last as RKitCache<String>).data, 'cached');
     });
 
     test('RKitCachePolicy.never emits RKitFailure when no local data exists',
@@ -138,8 +138,8 @@ void main() {
             RKitCachePolicy.staleIf<String>((data) => data != 'cached'),
       );
       final states = await repo.watch().toList();
-      expect(states.last, isA<RKitSuccess<String>>());
-      expect((states.last as RKitSuccess<String>).data, 'cached');
+      expect(states.last, isA<RKitCache<String>>());
+      expect((states.last as RKitCache<String>).data, 'cached');
     });
 
     test('stream closes after terminal emission', () async {
