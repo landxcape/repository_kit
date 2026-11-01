@@ -1,6 +1,21 @@
 # repository_kit
 
-A Dart utility for implementing offline-first repositories without repeating the same data-layer boilerplate across every feature.
+A Dart utility for implementing offline-first repositories without repeating data-layer orchestration boilerplate across features.
+
+[![pub package](https://img.shields.io/pub/v/repository_kit.svg)](https://pub.dev/packages/repository_kit)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-dart%20%7C%20flutter-blue)](https://pub.dev/packages/repository_kit)
+[![Interactive Sandbox](https://img.shields.io/badge/demo-interactive%20sandbox-0284C7.svg)](https://shakyapurna.com.np/#/lab/repository_kit/sandbox)
+
+An [interactive sandbox](https://shakyapurna.com.np/#/lab/repository_kit/sandbox) is available to test cache-first strategies, network fallbacks, and offline revalidation.
+
+## Installation
+
+Add the package to your project:
+
+```bash
+dart pub add repository_kit
+```
 
 ---
 
@@ -36,9 +51,9 @@ The deeper issue is that this pattern uses a `Future`, which can only return one
 
 `repository_kit` provides a base class and state wrapper that replaces this orchestration with a two-shot `Stream`. Instead of returning a single `Future<T>`, a repository returns `Stream<RKitState<T>>`. The stream emits up to three events:
 
-1. `RKitLoading` — immediately, before any async work begins.
-2. `RKitCache` — the local data, if it exists, while the network call is in progress.
-3. `RKitSuccess` or `RKitFailure` — the result of the network call.
+1. `RKitLoading`: emitted immediately before async work begins.
+2. `RKitCache`: local data, if available, while the network call is in progress.
+3. `RKitSuccess` or `RKitFailure`: the final result of the network call.
 
 The presentation layer subscribes to the stream and reacts to each state. It never decides where data comes from. All generic types are prefixed with `RKit` to prevent naming conflicts with existing packages in the Flutter/Dart ecosystem.
 
@@ -56,16 +71,7 @@ This package is not useful when:
 
 - Your repository only fetches from the network with no local storage.
 - You only need a one-shot `Future<T>` with no caching.
-- You want a state management solution — this is not one.
-
----
-
-## Installation
-
-```yaml
-dependencies:
-  repository_kit: ^0.1.3
-```
+- You want a state management solution (this is not one).
 
 ---
 
@@ -176,7 +182,7 @@ StreamBuilder<RKitState<User>>(
 
 Control whether and when the network request is made. Set via `cachePolicy` on your repository.
 
-### `RKitCachePolicy.always` (default) — Parallel
+### `RKitCachePolicy.always` (default): Parallel
 
 `load()` and `fetch()` run simultaneously. The first to complete controls what the stream emits.
 
@@ -195,7 +201,7 @@ Total time to `RKitSuccess` is `max(load, fetch)` instead of `load + fetch`.
 
 ---
 
-### `RKitCachePolicy.ifEmpty` — Sequential
+### `RKitCachePolicy.ifEmpty`: Sequential
 
 `load()` runs first. `fetch()` is only called if `load()` returns `null`. Saves network bandwidth when data is already cached.
 
@@ -212,7 +218,7 @@ RKitCachePolicy get cachePolicy => RKitCachePolicy.ifEmpty;
 
 ---
 
-### `RKitCachePolicy.never` — Local only
+### `RKitCachePolicy.never`: Local only
 
 `load()` runs. `fetch()` is never called. Useful for fully offline features or reference data that does not change.
 
@@ -228,7 +234,7 @@ RKitCachePolicy get cachePolicy => RKitCachePolicy.never;
 
 ---
 
-### `RKitCachePolicy.staleIf` — Sequential, conditional
+### `RKitCachePolicy.staleIf`: Sequential, conditional
 
 `load()` runs first. Your closure inspects the cached object and decides whether it is stale. If stale, `fetch()` proceeds. If fresh, `fetch()` is skipped.
 
@@ -273,7 +279,7 @@ Retries `fetch()` up to `maxAttempts` times with exponentially increasing delays
 RKitRetryPolicy get retryPolicy => RKitRetryPolicy.exponential(
   maxAttempts: 3,
   initialDelay: const Duration(seconds: 1),
-  // Delays: 1s, 2s, 4s — then failure
+  // Delays: 1s, 2s, 4s, then failure
 );
 ```
 
