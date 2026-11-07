@@ -5,9 +5,9 @@ A Dart utility for implementing offline-first repositories without repeating dat
 [![pub package](https://img.shields.io/pub/v/repository_kit.svg)](https://pub.dev/packages/repository_kit)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-dart%20%7C%20flutter-blue)](https://pub.dev/packages/repository_kit)
-[![Interactive Sandbox](https://img.shields.io/badge/demo-interactive%20sandbox-0284C7.svg)](https://shakyapurna.com.np/#/lab/repository_kit/sandbox)
+[![Interactive Sandbox](https://img.shields.io/badge/demo-interactive%20sandbox-0284C7.svg)](https://shakyapurna.com.np/lab/repository_kit/sandbox)
 
-An [interactive sandbox](https://shakyapurna.com.np/#/lab/repository_kit/sandbox) is available to test cache-first strategies, network fallbacks, and offline revalidation.
+An [interactive sandbox](https://shakyapurna.com.np/lab/repository_kit/sandbox) is available to test cache-first strategies, network fallbacks, and offline revalidation.
 
 ## Installation
 
